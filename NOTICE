@@ -1,0 +1,101 @@
+console-template-tango -- licences and third-party material
+===========================================================
+
+The Template core (rtl/), its simulation benches (sim/), its build scripts (build/) and its tools (tools/, except
+tools/osd-model/) are the Tango authors' work, distributed under the GNU General Public License, version 2 or (at your
+option) any later version (GPL-2.0-or-later; LICENSE is the GPL version 2 text), Copyright (c) 2026 the Tango authors,
+as each file's SPDX header says.  The core contains MiSTer text and arithmetic under that licence, listed below.
+
+tools/osd-model/*.py are unchanged copies of the OSD model of menu-tango (its tools/osd-model/, as first released),
+under the MIT licence (LICENSE-MIT), Copyright (c) 2026 the Tango authors, as their SPDX headers say.  menu-tango's
+NOTICE names what they follow (the pages of MiSTer's menu, Main_MiSTer menu.cpp).
+
+The framework at sys/ is a separate repository (sys-tango), included as a git submodule; its own LICENSE and NOTICE
+cover it.
+
+Bitstreams: a bitstream built from this repository contains the Template core and is therefore a combined work
+distributed under GPL-2.0-or-later; its source is this repository with sys-tango at sys/ (the commit the submodule
+points at).  The builds with the framework's video processing (build/build_template_vproc.sh) also include
+sys-tango's tango_video_geo.v, tango_shmask.v and tango_audio_filter.v, GPL-2.0-or-later (derived from MiSTer;
+sys-tango's NOTICE).  PLL_INIT, and in DDR3 builds the DDR3 Memory Interface IP, which the build takes from the user's
+Gowin installation, keep Gowin's terms (sys-tango's NOTICE).
+
+
+MiSTer material in rtl/tango_core_template.v
+--------------------------------------------
+Template_MiSTer -- https://github.com/MiSTer-devel/Template_MiSTer (line numbers as of its commit 5dda373)
+  Licence: the header of Template.sv: "This program is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2
+  of the License, or (at your option) any later version."  The repository's LICENSE is the GPL version 2 text (this
+  repository's LICENSE is that file, unchanged).  rtl/mycore.v and rtl/lfsr.v have no header of their own and are
+  covered by the repository's licence.  The files name no author.
+
+  1. The CONF_STR (the core's menu string): entries copied as text from Template.sv.
+       rtl/tango_core_template.v   Template.sv   entry
+       92                          59            "Template;;"
+       93, 100, 108, 115, 116      60, 64, 72,   "-;" (separators)
+                                   79, 80
+       95                          62            "O[2],TV Mode,NTSC,PAL;"
+       101-107                     65-71         "P1,Test Page 1;", "P1-;", "P1-, -= Options in page 1 =-;", "P1-;",
+                                                 "P1O[5],Option 1-1,Off,On;", "d0P1F1,BIN;",
+                                                 "H0P1O[10],Option 1-2,Off,On;"
+       109-114                     73-78         "P2,Test Page 2;", "P2-;", "P2-, -= Options in page 2 =-;", "P2-;",
+                                                 "P2S0,DSK;", "P2O[7:6],Option 2,1,2,3,4;"
+       117-118                     81-82         "T[0],Reset;", "R[0],Reset and close OSD;"
+       121                         86            the version entry "V," with the build date (Template.sv "V,v",`BUILD_DATE)
+     Changed from Template.sv: its "O[122:121],Aspect ratio,..." (line 61) is replaced by the framework's Video entries
+     (line 94, `TANGO_VIDEO_CONF, from sys-tango); its "O[4:3],Noise,White,Red,Green,Blue;" (line 63) is left out;
+     its "v,0;" (line 83) is "v,1;" (line 120).  The entries "O[44:41],Pattern,...", "O[47:45],Source size,...",
+     "O[50:48],Audio test,..." and "J,A,B;" (lines 96-98, 119) are the Tango authors'; line 99 is MegaDrive_MiSTer's
+     label (below).
+
+  2. The picture, Template_MiSTer's TV static (rtl/mycore.v, rtl/lfsr.v), re-implemented as clocked logic on the
+     framework's beam; these lines follow theirs:
+       rtl/tango_core_template.v                                      Template_MiSTer
+       393  wire [5:0] rnd_c = {r[0], r[1], r[2], r[2], r[2], r[2]};   rtl/mycore.v 26 (the same bits of rnd_reg)
+       392  wire [5:0] cos_g = {1'b0, cosv[7:3]} + 6'd32;              rtl/mycore.v 85
+       394  wire [7:0] video = (cos_g >= rnd_c) ?                       rtl/mycore.v 88 (the same expression)
+                               {cos_g - rnd_c, 2'b00} : 8'd0;
+       388  wire [9:0] cph = vvc + {cl, 2'b00};                         rtl/mycore.v 86 (the cosine's argument)
+       385-386  vvc cleared by reset, stepped by 6 each frame           rtl/mycore.v 55, 44 (the step of 5 for PAL is
+                                                                      the Tango authors')
+       366  wire fb = ~(r[62] ^ r[60] ^ r[59] ^ r[57] ^ r[53]);         rtl/lfsr.v 8 (the 63-bit LFSR's taps N-1, N-3,
+                                                                      N-4, N-6, N-10; there a free-running ring of
+                                                                      lcells, here a clocked register, line 370)
+     Template_MiSTer's cosine table (rtl/cos.sv) is not used: rtl/template_cos.vh is computed by tools/gen_cos.py,
+     q[i] = round(127 cos((i + 0.5) pi / 512)).
+
+MegaDrive_MiSTer -- https://github.com/MiSTer-devel/MegaDrive_MiSTer (line numbers as of its commit 083e1b1)
+  Licence: the header of MegaDrive.sv, "HAL for NukedMD-FPGA", "Copyright (c) 2023 Alexey Melnikov": "This program is
+  free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as
+  published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version."
+       rtl/tango_core_template.v 99   "O[52:51],Stereo Mix,None,25%,50%,100%;"
+       MegaDrive.sv 111               "P1O[58:57],Stereo Mix,None,25%,50%,100%;" (the same label and values; other bits)
+
+
+Following other projects' behaviour
+-----------------------------------
+These files are the Tango authors' code; they follow documented or observed behaviour of other projects, which they
+cite:
+  - tools/template_model.py, tools/template_golden.py: the model of the picture above (Template_MiSTer's behaviour).
+  - tools/vproc_golden.py, tools/vproc_audio.py, tools/vproc_board.py, sim/measure_scale.py: models of MiSTer's video
+    and audio processing (Template_MiSTer sys/: ascal, video_freak.sv, audio_out.sv, iir_filter.v), with the
+    framework's models in sys/build_tools/ (sys-tango; their own licences).
+  - sim/tb_template.cpp, sim/tb_template.inc, sim/tb_vproc.v: the BL616 side of the link as the FPGA Companion firmware
+    (Apache-2.0) and the Tango firmware (firmware-tango, GPL-3.0-or-later) drive it.
+  - The menu string format (CONF_STR) and the core interface are MiSTer's (sys-tango's NOTICE).
+  - sim/run_vproc_gates.sh and tools/vproc_audio.py load MiSTer's filter files (Filters, Gamma, Shadow_Masks, Presets,
+    Filters_Audio) from a folder the user gives (FILTERS); none is in this repository.
+
+
+Saira Condensed (the OSD model's font)
+--------------------------------------
+Files:  tools/osd-model/fonts/SairaCondensed-SemiBold.ttf   (Version 0.072, unmodified)
+        tools/osd-model/fonts/OFL.txt                         (its licence)
+Author: Copyright 2016 The Saira Project Authors, with reserved font name "Saira" (the font's own name table:
+        vendor Omnibus-Type, designer Hector Gatti with collaboration of the Omnibus-Type team).
+Licence: SIL Open Font License 1.1 (tools/osd-model/fonts/OFL.txt).
+Used by the simulation benches only (the OSD model renders the expected menu page); not part of any bitstream.
+
+
+ROMs: none.  The simulation's download file is generated by the testbench.

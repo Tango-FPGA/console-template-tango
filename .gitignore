@@ -1,0 +1,13 @@
+# sim output
+sim/obj/
+sim/obj_*/
+sim/obj_*.log
+# Gowin output; the build scripts archive bitstreams in $TANGO_ARCHIVE (default bitstreams/), never in git
+build/out/
+build/*.log
+bitstreams/
+*.fs
+*.bin
+__pycache__/
+# the OSD model's own renders (tools/osd-model/pages.py makes out/ on import)
+tools/osd-model/out/
