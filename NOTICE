@@ -1,14 +1,10 @@
 console-template-tango -- licences and third-party material
 ===========================================================
 
-The Template core (rtl/), its simulation benches (sim/), its build scripts (build/) and its tools (tools/, except
-tools/osd-model/) are the Tango authors' work, distributed under the GNU General Public License, version 2 or (at your
-option) any later version (GPL-2.0-or-later; LICENSE is the GPL version 2 text), Copyright (c) 2026 the Tango authors,
-as each file's SPDX header says.  The core contains MiSTer text and arithmetic under that licence, listed below.
-
-tools/osd-model/*.py are unchanged copies of the OSD model of menu-tango (its tools/osd-model/, as first released),
-under the MIT licence (LICENSE-MIT), Copyright (c) 2026 the Tango authors, as their SPDX headers say.  menu-tango's
-NOTICE names what they follow (the pages of MiSTer's menu, Main_MiSTer menu.cpp).
+The Template core (rtl/), its build scripts (build/) and the generator of its cosine table (tools/gen_cos.py) are
+the Tango authors' work, distributed under the GNU General Public License, version 2 or (at your option) any later
+version (GPL-2.0-or-later; LICENSE is the GPL version 2 text), Copyright (c) 2026 the Tango authors, as each file's
+SPDX header says.  The core contains MiSTer text and arithmetic under that licence, listed below.
 
 The framework at sys/ is a separate repository (sys-tango), included as a git submodule; its own LICENSE and NOTICE
 cover it.
@@ -32,7 +28,7 @@ Template_MiSTer -- https://github.com/MiSTer-devel/Template_MiSTer (line numbers
 
   1. The CONF_STR (the core's menu string): entries copied as text from Template.sv.
        rtl/tango_core_template.v   Template.sv   entry
-       92                          59            "Template;;"
+       92                          59            "Template;;" (the name entry; here "Console_Template;;", below)
        93, 100, 108, 115, 116      60, 64, 72,   "-;" (separators)
                                    79, 80
        95                          62            "O[2],TV Mode,NTSC,PAL;"
@@ -43,7 +39,9 @@ Template_MiSTer -- https://github.com/MiSTer-devel/Template_MiSTer (line numbers
                                                  "P2S0,DSK;", "P2O[7:6],Option 2,1,2,3,4;"
        117-118                     81-82         "T[0],Reset;", "R[0],Reset and close OSD;"
        121                         86            the version entry "V," with the build date (Template.sv "V,v",`BUILD_DATE)
-     Changed from Template.sv: its "O[122:121],Aspect ratio,..." (line 61) is replaced by the framework's Video entries
+     Changed from Template.sv: its name "Template;;" (line 59) is "Console_Template;;" (line 92), the core's name on
+     the card (/_Console/Console_Template_<date>.bin, /games/Console_Template/, /config/Console_Template_v1.CFG);
+     its "O[122:121],Aspect ratio,..." (line 61) is replaced by the framework's Video entries
      (line 94, `TANGO_VIDEO_CONF, from sys-tango); its "O[4:3],Noise,White,Red,Green,Blue;" (line 63) is left out;
      its "v,0;" (line 83) is "v,1;" (line 120).  The entries "O[44:41],Pattern,...", "O[47:45],Source size,...",
      "O[50:48],Audio test,..." and "J,A,B;" (lines 96-98, 119) are the Tango authors'; line 99 is MegaDrive_MiSTer's
@@ -75,27 +73,7 @@ MegaDrive_MiSTer -- https://github.com/MiSTer-devel/MegaDrive_MiSTer (line numbe
 
 Following other projects' behaviour
 -----------------------------------
-These files are the Tango authors' code; they follow documented or observed behaviour of other projects, which they
-cite:
-  - tools/template_model.py, tools/template_golden.py: the model of the picture above (Template_MiSTer's behaviour).
-  - tools/vproc_golden.py, tools/vproc_audio.py, tools/vproc_board.py, sim/measure_scale.py: models of MiSTer's video
-    and audio processing (Template_MiSTer sys/: ascal, video_freak.sv, audio_out.sv, iir_filter.v), with the
-    framework's models in sys/build_tools/ (sys-tango; their own licences).
-  - sim/tb_template.cpp, sim/tb_template.inc, sim/tb_vproc.v: the BL616 side of the link as the FPGA Companion firmware
-    (Apache-2.0) and the Tango firmware (firmware-tango, GPL-3.0-or-later) drive it.
-  - The menu string format (CONF_STR) and the core interface are MiSTer's (sys-tango's NOTICE).
-  - sim/run_vproc_gates.sh and tools/vproc_audio.py load MiSTer's filter files (Filters, Gamma, Shadow_Masks, Presets,
-    Filters_Audio) from a folder the user gives (FILTERS); none is in this repository.
+The menu string format (CONF_STR) and the core interface are MiSTer's (sys-tango's NOTICE).
 
 
-Saira Condensed (the OSD model's font)
---------------------------------------
-Files:  tools/osd-model/fonts/SairaCondensed-SemiBold.ttf   (Version 0.072, unmodified)
-        tools/osd-model/fonts/OFL.txt                         (its licence)
-Author: Copyright 2016 The Saira Project Authors, with reserved font name "Saira" (the font's own name table:
-        vendor Omnibus-Type, designer Hector Gatti with collaboration of the Omnibus-Type team).
-Licence: SIL Open Font License 1.1 (tools/osd-model/fonts/OFL.txt).
-Used by the simulation benches only (the OSD model renders the expected menu page); not part of any bitstream.
-
-
-ROMs: none.  The simulation's download file is generated by the testbench.
+ROMs: none.

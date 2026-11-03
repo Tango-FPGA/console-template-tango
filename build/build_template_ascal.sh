@@ -13,7 +13,7 @@
 # Gate: sys/build_tools/sta_gate.py with --relax clk_sdram:96.0 (SDRAM PLL = 96 MHz;
 #   SDC overconstrain 120 MHz forces compact placement -- see tango_console138k_sdram108.sdc).
 # Archive: $TANGO_ARCHIVE (default bitstreams/ in this checkout)/tango_template_ascal138_<stamp>_g<git>.{fs,bin,txt}
-# A heavy job: run one build or bench at a time (memory).
+# A heavy job (several GB of memory, run through sys/build_tools/tango_capped.sh): one at a time.
 set -eu
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
@@ -37,7 +37,7 @@ ARCH="${TANGO_ARCHIVE:-$ROOT/bitstreams}"; mkdir -p "$ARCH"
 STAMP="$ARCH/${NAME}_$(date +%Y%m%d-%H%M)_g${SHA}${DTAG}"; [ $SG -ne 0 ] && STAMP="${STAMP}_STA-FAIL"
 cp "$FS" "$STAMP.fs" && cmp "$FS" "$STAMP.fs" && chmod 444 "$STAMP.fs"
 python3 "$ROOT/sys/build_tools/fs2bin.py" "$STAMP.fs" "$STAMP.bin" && chmod 444 "$STAMP.bin"
-{ echo "template-tango ASCAL $SHA$DTAG"; echo "framework: sys/ = sys-tango $FSHA (uncommitted files in sys/: $FDIRTY)"
+{ echo "console-template-tango ASCAL $SHA$DTAG"; echo "framework: sys/ = sys-tango $FSHA (uncommitted files in sys/: $FDIRTY)"
   echo; echo "$GATE"
   grep -E "^\s*(Logic|CLS|Register|BSRAM|DSP|PLL)\s*\|" "$IMPL/$NAME.rpt.txt" || true; } > "$STAMP.txt"
 chmod 444 "$STAMP.txt"

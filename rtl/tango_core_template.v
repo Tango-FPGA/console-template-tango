@@ -7,10 +7,10 @@
 // tango_core (Template) -- the Tango template core: Template_MiSTer's picture and menu on the Tango
 // framework (the picture is MiSTer's TV static, as in Template_MiSTer).  Behaviour read from
 // Template_MiSTer (19e89ce) Template.sv 58-87 (CONF_STR) and 122-167, rtl/mycore.v, rtl/lfsr.v,
-// rtl/cos.sv; the lines that follow mycore.v and lfsr.v: NOTICE.  Bit-exact model: tools/template_model.py.
+// rtl/cos.sv; the lines that follow mycore.v and lfsr.v: NOTICE.
 //
 // Picture: TV static.  A 63-bit LFSR (mycore/lfsr.v's taps, but clocked: MiSTer's free-running lcell
-// ring could not be followed by a golden) gives rnd_c = {r0, r1, r2, r2, r2, r2}; a cosine wave that
+// ring could not be followed by a model) gives rnd_c = {r0, r1, r2, r2, r2, r2}; a cosine wave that
 // rolls down the screen gives cos_g = cos(vvc + 4 * line)[7:3] + 32; video = cos_g - rnd_c (x4), or 0.
 // Bare mode (default): 320 x 240 "core pixels" scaled to 720p: 3 lines each, 4 px wide (Aspect ratio Full
 //   Screen / 16:9) or 3 px wide with black bars (Original / 4:3).  VID_RGB is the pixel for (VID_CX, VID_CY)
@@ -54,14 +54,14 @@
 //   (proves ioctl).  ioctl_wait is held for 3 clocks after every byte, to exercise the wait path.
 //   Test patterns (ASCAL mode; a library the Template keeps and adds to): pattern() below,
 //   one case per pattern, a function of the native x, y, the active size w x h and the frame number;
-//   tools/template_patterns.py has the same functions at the same index, and CONF_STR's Pattern entry
-//   names them in that order:
+//   CONF_STR's Pattern entry names them in the order of their index:
+//
 //     0 Gradient    R = x, G = y, B = 0x80 -- the colour path and where the picture lands (corners, edges);
 //     1 Pixel grid  1-px white/black columns (the top third of the lines: 3y < h), rows (the middle third:
 //                   3y < 2h) and a checkerboard (the rest); at 320 x 240: lines 0-79, 80-159, 160-239 -- every
 //                   stripe is k output pixels at an integer scale; a non-integer scale makes them uneven.
 //   Audio test: audio_test() below, one case per signal, on CLK_PIX (the clock AUDIO_L/R are in,
-//     sys/tango_core_ports.vh), signed, +-8192 (-12 dBFS); tools/template_audio.py is the model:
+//     sys/tango_core_ports.vh), signed, +-8192 (-12 dBFS):
 //       1 1 kHz square   the level flips every 37125 clocks (74.25 MHz / 2 kHz, exact)
 //       2 440 Hz square  every 84375 clocks (74.25 MHz / 880 Hz, exact): its harmonics alias at 48 kHz, 1 kHz's do not
 //       3 Sweep          a square from a 32-bit phase accumulator: increment 2893 (50.0 Hz) + 190 every 65536 clocks,
@@ -73,7 +73,7 @@
 //     framework's audio filter applies as MiSTer's audio_out.sv (None / 25% / 50% / 100% = mono); only in builds with
 //     the framework's audio filter (TANGO_AUDIO_FILTER / TANGO_VIDEO_PROC: tango_core_ports.vh AUDIO_MIX).
 //   Source sizes (ASCAL mode): size_tab() below, one row per size (active size, totals, CE
-//     divider: about 60 Hz each); template_patterns.py SIZES mirrors it.  The size is taken at the native frame
+//     divider: about 60 Hz each).  The size is taken at the native frame
 //     end, so an OSD change re-times the next frame without a reset; the square goes back to the middle.
 //   The pattern shown follows the OSD's Pattern when status[44:41] changes (a value with no pattern shows
 //   Gradient); otherwise joystick_0 A steps to the next pattern and B to the previous one, one step per press,
@@ -89,7 +89,7 @@ module tango_core (
     wire clk = CLK_PIX;
 
     localparam CONF_STR = {
-        "Template;;",
+        "Console_Template;;",               // the name: OSD title and banner, config/<name>_v<N>.CFG, games/<name>/
         "-;",
         `TANGO_VIDEO_CONF,                  // the framework's Aspect ratio, Scale, Scanlines (header)
         "O[2],TV Mode,NTSC,PAL;",
@@ -192,8 +192,8 @@ module tango_core (
     // ascal writes every input frame to SDRAM, so the input rate must be a real core's: about 60 Hz.
     // (CE_PIXEL = 1 gave 708 Hz, whose writes alone exceed the SDRAM's bandwidth, and ascal serves writes
     // before reads.)
-    // ---- the source sizes (header "Source sizes"): ONE TABLE, one row per size; tools/
-    // template_patterns.py SIZES has the same rows at the same index and CONF_STR's Source size entry their names.
+    // ---- the source sizes (header "Source sizes"): ONE TABLE, one row per size; CONF_STR's Source size entry
+    // names them in the order of their index.
     //   #  name          active   total      CE_DIV  pixels       frames     like
     //   0  320x240       320x240  400 x 262  12      6.1875 MHz   59.04 Hz   the Template's own (as before)
     //   1  256x240 NES   256x240  341 x 262  14      5.3036 MHz   59.36 Hz   NES: 341 dots x 262 lines
@@ -281,9 +281,9 @@ module tango_core (
 
     // ---- the test patterns (header "Test patterns"): pattern p's colour at native (x, y) of a w x h frame,
     // native frame number f.  ONE CASE PER PATTERN, nothing about a pattern anywhere else;
-    // tools/template_patterns.py has the same function at the same index and CONF_STR's Pattern entry its
-    // name.  Add a pattern: README "Adding a test pattern" (its case here, NPAT + 1, its Python function, its name
-    // in CONF_STR, the sim gates).
+    // CONF_STR's Pattern entry names them in the order of their index.
+    // Add a pattern: its case here, NPAT + 1, and its name in CONF_STR's Pattern entry
+    // (README, "What the Template core does").
     localparam [3:0] NPAT = 4'd2;                     // patterns 0 .. NPAT-1 exist; any other value shows 0
     function automatic [23:0] pattern(input [3:0] p, input [9:0] x, input [8:0] y, input [9:0] w, input [8:0] h,
                                       input [7:0] f);

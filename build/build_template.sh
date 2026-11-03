@@ -15,8 +15,8 @@
 # Archive: $TANGO_ARCHIVE (default bitstreams/ in this checkout)/tango_template138_<YYYYMMDD-HHMM>_g<git>[-dirty].{fs,bin,txt}; the .txt
 # records this repo's and the framework's commits and the gate result.  A failing gate is archived as
 # ..._STA-FAIL and printed as do-not-flash.  Never flashes anything.
-# On the card the .bin goes to /_Console/Template_<YYYYMMDD>.bin.
-# A heavy job: run one build or bench at a time (memory).
+# On the card the .bin goes to /_Console/Console_Template_<YYYYMMDD>.bin (the CONF_STR name, Console_Template).
+# A heavy job (several GB of memory, run through sys/build_tools/tango_capped.sh): one at a time.
 set -eu
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
@@ -39,7 +39,7 @@ ARCH="${TANGO_ARCHIVE:-$ROOT/bitstreams}"; mkdir -p "$ARCH"
 STAMP="$ARCH/${NAME}_$(date +%Y%m%d-%H%M)_g${SHA}${DTAG}"; [ $SG -ne 0 ] && STAMP="${STAMP}_STA-FAIL"
 cp "$FS" "$STAMP.fs" && cmp "$FS" "$STAMP.fs" && chmod 444 "$STAMP.fs"
 python3 "$ROOT/sys/build_tools/fs2bin.py" "$STAMP.fs" "$STAMP.bin" && chmod 444 "$STAMP.bin"
-{ echo "template-tango $SHA$DTAG"; echo "framework: sys/ = sys-tango $FSHA (uncommitted files in sys/: $FDIRTY)"
+{ echo "console-template-tango $SHA$DTAG"; echo "framework: sys/ = sys-tango $FSHA (uncommitted files in sys/: $FDIRTY)"
   echo; echo "$GATE"
   grep -E "^\s*(Logic|CLS|Register|BSRAM|DSP|PLL)\s*\|" "$IMPL/$NAME.rpt.txt" || true; } > "$STAMP.txt"
 chmod 444 "$STAMP.txt"
